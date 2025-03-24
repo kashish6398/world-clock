@@ -1,22 +1,44 @@
-document.getElementById("locationSelect").addEventListener("change", function() {
-    let selectedTimezone = this.value;
+document.addEventListener("DOMContentLoaded", function () {
+    updateAllClocks();
 
-    if (selectedTimezone === "current") {
-        getCurrentLocationTime();
-    } else {
-        updateTime(selectedTimezone);
-        setInterval(() => updateTime(selectedTimezone), 1000);
-    }
+    setInterval(updateAllClocks, 1000); // Update every second
+
+    document.getElementById("locationSelect").addEventListener("change", function () {
+        let selectedTimezone = this.value;
+
+        if (selectedTimezone === "current") {
+            getCurrentLocationTime();
+        } else {
+            updateExtraClock(selectedTimezone);
+            setInterval(() => updateExtraClock(selectedTimezone), 1000);
+        }
+
+        document.getElementById("homeLink").style.display = "block"; // Show 'Back to Home' link
+    });
 });
 
-function updateTime(timezone) {
+function updateAllClocks() {
+    updateClock("America/New_York", "time-ny", "date-ny");
+    updateClock("Europe/London", "time-london", "date-london");
+    updateClock("Asia/Tokyo", "time-tokyo", "date-tokyo");
+}
+
+function updateClock(timezone, timeId, dateId) {
     let now = new Date();
+    let optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: timezone };
+    let optionsDate = { year: 'numeric', month: 'long', day: 'numeric', timeZone: timezone };
 
-    let timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: timezone };
-    let dateOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: timezone };
+    document.getElementById(timeId).textContent = new Intl.DateTimeFormat('en-US', optionsTime).format(now);
+    document.getElementById(dateId).textContent = new Intl.DateTimeFormat('en-US', optionsDate).format(now);
+}
 
-    document.getElementById("currentTime").textContent = new Intl.DateTimeFormat('en-US', timeOptions).format(now);
-    document.getElementById("currentDate").textContent = new Intl.DateTimeFormat('en-US', dateOptions).format(now);
+function updateExtraClock(timezone) {
+    let now = new Date();
+    let optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: timezone };
+    let optionsDate = { year: 'numeric', month: 'long', day: 'numeric', timeZone: timezone };
+
+    document.getElementById("extraTime").textContent = new Intl.DateTimeFormat('en-US', optionsTime).format(now);
+    document.getElementById("extraDate").textContent = new Intl.DateTimeFormat('en-US', optionsDate).format(now);
 
     let locationText = document.getElementById("locationSelect").selectedOptions[0].text;
     document.getElementById("selectedLocation").innerText = locationText;
@@ -32,7 +54,7 @@ function getCurrentLocationTime() {
                 .then(response => response.json())
                 .then(data => {
                     let timezone = data.zoneName;
-                    updateTime(timezone);
+                    updateExtraClock(timezone);
                 })
                 .catch(error => {
                     console.error("Error fetching time zone:", error);
